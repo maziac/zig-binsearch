@@ -6,7 +6,9 @@
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/zig-out/bin/binsearch",
-            "args": [],
+            "args": [
+                "--help"
+            ],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build"
         }

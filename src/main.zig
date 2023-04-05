@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn main() void {
+pub fn main() !void {
     //var a: i32 = 13;
     std.debug.print("Hello, {s}!\n", .{"World"});
     //std.debug.print("the value a = {}\n", "gg");
@@ -8,16 +8,32 @@ pub fn main() void {
     var args = try std.process.argsWithAllocator(std.heap.page_allocator);
     defer args.deinit();
 
+    // Skip path
     const executable_name = args.next();
-    //  orelse {
-    //     try .print.process(error.NoExecutableName, Error{
-    //         .option = "",
-    //         .kind = .missing_executable_name,
-    //     });
 
-    //     // we do not assume any more arguments appear here anyways...
-    //     return error.NoExecutableName;
-    // };
+    while (true) {
+        var arg = args.next() orelse break;
+
+        if (std.cstr.cmp(arg, "--help") == 0) {
+            try args_help();
+        }
+    }
 
     std.debug.print("executable_name={any}\n", .{executable_name});
 }
+
+fn args_help() !void {
+    try std.io.getStdOut().writer().print("Help {any}", .{""});
+}
+
+// const std = @import("std");
+
+// pub fn main() anyerror!void {
+//     var args = try std.process.argsWithAllocator(std.heap.page_allocator);
+//     defer args.deinit();
+
+//     // Skip path
+//     const executable_name = args.next() orelse return;
+//     //_ = executable_name;
+//     if (std.cstr.cmp(executable_name, "--help") == 0) {}
+// }
