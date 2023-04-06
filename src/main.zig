@@ -29,17 +29,17 @@ pub fn main() !void {
                 offs = try std.fmt.parseInt(i32, o, 0);
             }
         } else if (std.cstr.cmp(arg, "--size") == 0) {
-            // const s = args.get_next_check("Expected a size.");
-            // // Check for max
-            // var size: i32;
-            // if s == "all" {
-            //     size = std::i32::MAX;
-            // }
-            // else {
-            //     size = s.parse::<i32>().unwrap();
-            // }
-            // bin_dumper.dump(offs, size, output);
-            // offs += size;
+            const s = args.next() orelse {
+                return anyerror.expected_size; //;"Expected a size value.");
+            };
+            // Check for max
+            var size: i32 = std.math.maxInt(i32);
+            if (std.cstr.cmp(s, "all") != 0) {
+                // It's not "all":
+                size = try std.fmt.parseInt(i32, s, 0);
+            }
+          //  bin_dumper.dump(offs, size, output);
+            offs += size;
         } else if (std.cstr.cmp(arg, "--search") == 0) {
             // let s = args.get_next_check("Expected a string.");
             // println!("search: {}", s);
