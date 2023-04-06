@@ -1,4 +1,6 @@
 const std = @import("std");
+const bin_dumper = @import("bin_dumper.zig");
+
 const stdout = std.io.getStdOut();
 
 pub fn main() !void {
@@ -46,7 +48,7 @@ pub fn main() !void {
             // bin_dumper.search(&mut offs, &s);
         } else {
             // // It is the filename. Open file.
-            // bin_dumper.read_file(arg);
+            try bin_dumper.read_file(arg);
             // offs = 0;
         }
     }
