@@ -2,9 +2,11 @@ const std = @import("std");
 const stdout = std.io.getStdOut();
 
 pub fn main() !void {
-    //var a: i32 = 13;
-    std.debug.print("Hello, {s}!\n", .{"World"});
-    //std.debug.print("the value a = {}\n", "gg");
+    var offs: i32 = 0;
+    _ = offs;
+    //var mut bin_dumper = BinDumper::new();
+
+//    std.debug.print("Hello, {s}!\n", .{"World"});
 
     var args = try std.process.argsWithAllocator(std.heap.page_allocator);
     defer args.deinit();
@@ -17,12 +19,52 @@ pub fn main() !void {
 
         if (std.cstr.cmp(arg, "--help") == 0) {
             args_help();
+            return anyerror.my_error;
+        }
+        else if (std.cstr.cmp(arg, "--offs") == 0) {
+            const o = args.next() orelse {
+                return anyerror.expected_offset; //;"Expected an offset.");
+            };
+            _ = o;
+			// if o.starts_with("+") {
+	        //     offs += o[1..].parse::<i32>().unwrap();
+			// }
+			// else if o.starts_with("-") {
+	        //     offs -= o[1..].parse::<i32>().unwrap();
+			// }
+			// else {
+	        //     offs = o.parse::<i32>().unwrap();
+			// }
+        }
+        else if (std.cstr.cmp(arg, "--size") == 0) {
+            // const s = args.get_next_check("Expected a size.");
+            // // Check for max
+            // var size: i32;
+            // if s == "all" {
+            //     size = std::i32::MAX;
+            // }
+            // else {
+            //     size = s.parse::<i32>().unwrap();
+            // }
+            // bin_dumper.dump(offs, size, output);
+            // offs += size;
+        }
+        else if (std.cstr.cmp(arg, "--search") == 0) {
+            // let s = args.get_next_check("Expected a string.");
+            // println!("search: {}", s);
+			// bin_dumper.search(&mut offs, &s);
+        }
+        else {
+            // // It is the filename. Open file.
+            // bin_dumper.read_file(arg);
+			// offs = 0;
         }
     }
 
     std.debug.print("executable_name={any}\n", .{executable_name});
 }
 
+/// Prints the help.
 fn args_help() void {
     stdout.writer().print(
         \\Usage:
@@ -41,15 +83,3 @@ fn args_help() void {
         \\
     , .{}) catch {};
 }
-
-// const std = @import("std");
-
-// pub fn main() anyerror!void {
-//     var args = try std.process.argsWithAllocator(std.heap.page_allocator);
-//     defer args.deinit();
-
-//     // Skip path
-//     const executable_name = args.next() orelse return;
-//     //_ = executable_name;
-//     if (std.cstr.cmp(executable_name, "--help") == 0) {}
-// }

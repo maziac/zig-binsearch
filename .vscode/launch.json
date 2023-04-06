@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/zig-out/bin/binsearch",
             "args": [
-                "--help"
+                "--offs"
             ],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build"
