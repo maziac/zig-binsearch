@@ -33,6 +33,33 @@ I.e. a pointer to an u8 slice that is terminated with 0.
 0 is here the so.called sentinel or terminator.
 
 
+## Optionals
+
+A pointer can be defined as
+~~~
+var p: ?*u8 = null;
+~~~
+
+To use the value it needs to be unwrapped with:
+~~~
+if(p) |ptr| {
+	allocator.free(ptr);
+}
+~~~
+
+In this example ptr gets the type *u8.
+
+
+# @This
+
+@This() returns the type of the inner most struct/enum/union. For example, the following prints "true":
+
+~~~
+const Tea = struct {
+  const Self = @This();
+};
+~~~
+
 
 # Errors
 

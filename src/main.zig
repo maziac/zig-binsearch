@@ -8,6 +8,7 @@ pub fn main() !void {
     //var mut bin_dumper = BinDumper::new();
 
     //    std.debug.print("Hello, {s}!\n", .{"World"});
+    const writer = stdout.writer();
 
     var args = try std.process.argsWithAllocator(std.heap.page_allocator);
     defer args.deinit();
@@ -40,7 +41,7 @@ pub fn main() !void {
                 // It's not "all":
                 size = try std.fmt.parseInt(i32, s, 0);
             }
-          //  bin_dumper.dump(offs, size, output);
+            try bin_dumper.dump(offs, size, writer);
             offs += size;
         } else if (std.cstr.cmp(arg, "--search") == 0) {
             // let s = args.get_next_check("Expected a string.");

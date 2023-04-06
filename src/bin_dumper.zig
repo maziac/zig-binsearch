@@ -20,29 +20,31 @@ pub fn read_file(spath: [:0]const u8) anyerror!void {
 
     // Read file
     buffer = try file.reader().readAllAlloc(allocator, std.math.maxInt(usize));
-  
+}
 
-    // // Get the path
-    // var path_buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    // const path = try std.fs.realpath(spath, &path_buffer);
-
-    // // Open the file
-    // const file = try std.os.file(
-    // 		;std.fs.openFileAbsolute(path, .{ .read = true });
-    // defer file.close();
-
-    // // Read the contents
-    // const buffer_size = 2000;
-    // const file_buffer = try file.readToEndAlloc(allocator, buffer_size);
-    // defer allocator.free(file_buffer);
-
-    // // Split by "\n" and iterate through the resulting slices of "const []u8"
-    // var iter = std.mem.split(file_buffer, "\n");
-
-    // var count: usize = 0;
-    // while (iter.next()) |line| : (count += 1) {
-    //     std.log.info("{d:>2}: {s}", .{ count, line });
-    // }
+/// Dumps out the contents of a slice of 'buffer' to 'output'.
+/// # Arguments
+/// * 'offset' - The first byte to dump out.
+/// * 'size' - The number of bytes to dump out.
+/// * 'writer' - The destination to write to.
+/// TODO: change i32 to i64.
+pub fn dump(offset: i32, size: i32, writer: anytype) !void {
+    if (buffer) |buf| {
+        const len = @intCast(i32, buf.len);
+        var start = offset;
+        var count = size;
+        if (start < len) {
+            if (start < 0) {
+                count += start;
+                start = 0;
+            }
+            if (count > len - start) {
+                count = len - start;
+            }
+            const end = start + count;
+            try writer.writeAll(buf[@intCast(usize, start)..@intCast(usize, end)]);
+        }
+    }
 }
 
 //         // Clear buffer
