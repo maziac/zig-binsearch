@@ -45,18 +45,36 @@ pub fn dump(offset: i64, size: i64, writer: anytype) !void {
     }
 }
 
-/// The function `addOne` adds one to the number given as its argument.
-fn addOne(number: i32) i32 {
-    return number + 1;
-}
-
-test "expect addOne adds one to 41" {
-
-    // The Standard Library contains useful functions to help create tests.
-    // `expect` is a function that verifies its argument is true.
-    // It will return an error if its argument is false to indicate a failure.
-    // `try` is used to return an error to the test runner to notify it that the test failed.
-    try std.testing.expect(addOne(41) == 42);
+/// Searches a string in the buffer and changes the 'offset'.
+/// If the string is not found the buffer length is returned in 'offset'.
+/// Arguments:
+/// 'offset' - The offset to search from. The found offset is returned here.
+/// 'search' - the serach string.
+pub fn search(offset: *i64, search_bytes: []const u8) void {
+    const slen = @intCast(i64, search_bytes.len);
+    if (slen > 0) {
+        const len = @intCast(i64, buffer.?.len);
+        var offs = offset.*;
+        if (offs < 0) {
+            offs = 0;
+        }
+        const last = len - slen + 1;
+        if (offs <= last) {
+            // Loop all elements
+            var i = offs;
+            while (i < last) {
+                if (std.mem.eql(u8, buffer.?[@intCast(usize,i) .. @intCast(usize,i + slen)], search_bytes)) {
+                    // Search bytes found
+                    offset.* = i;
+                    return;
+                }
+                // Next
+                i += 1;
+            }
+            // Nothing found
+        }
+        offset.* = len;
+    }
 }
 
 test "read_file" {
@@ -123,4 +141,12 @@ test "dump" {
         try dump(1, 10, outbuffer.writer());
         try std.testing.expectEqualSlices(u8, outbuffer.items, "bcdefghijk");
     }
+}
+
+test "search" {
+    try read_file("test_data/abcdefghijkl.bin");
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const len = buffer.?.len;
+    _ = len;
 }

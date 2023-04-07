@@ -21,7 +21,7 @@ pub fn main() !void {
             return anyerror.my_error;
         } else if (std.cstr.cmp(arg, "--offs") == 0) {
             const o = args.next() orelse {
-                return anyerror.expected_offset; //;"Expected an offset value.");
+                return anyerror.expected_offset; // "Expected an offset value."
             };
             if ((o[0] == '+') or (o[0] == '-')) {
                 offs += try std.fmt.parseInt(i64, o, 0);
@@ -30,7 +30,7 @@ pub fn main() !void {
             }
         } else if (std.cstr.cmp(arg, "--size") == 0) {
             const s = args.next() orelse {
-                return anyerror.expected_size; //;"Expected a size value.");
+                return anyerror.expected_size; // "Expected a size value."
             };
             // Check for max
             var size: i64 = std.math.maxInt(i64);
@@ -41,9 +41,10 @@ pub fn main() !void {
             try bin_dumper.dump(offs, size, writer);
             offs += size;
         } else if (std.cstr.cmp(arg, "--search") == 0) {
-            // let s = args.get_next_check("Expected a string.");
-            // println!("search: {}", s);
-            // bin_dumper.search(&mut offs, &s);
+            const s = args.next() orelse {
+                return anyerror.expected_search_value; // "Expected a value sequence to search for."
+            };
+            bin_dumper.search(&offs, s);
         } else {
             // // It is the filename. Open file.
             try bin_dumper.read_file(arg);
