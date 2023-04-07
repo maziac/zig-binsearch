@@ -150,5 +150,52 @@ test "search" {
     var outbuffer = std.ArrayList(u8).init(allocator);
     defer outbuffer.deinit();
     const len = buffer.?.len;
-    _ = len;
+
+    {
+        var offset: i64 = 0;
+        search(&offset, "");
+        try std.testing.expect(offset == 0);
+    }
+
+    {
+        var offset: i64 = 0;
+        search(&offset, "a");
+        try std.testing.expect(offset == 0);
+    }
+
+    {
+        var offset: i64 = 0;
+        search(&offset, "b");
+        try std.testing.expect(offset == 1);
+    }
+
+    {
+        var offset: i64 = 2;
+        search(&offset, "c");
+        try std.testing.expect(offset == 2);
+    }
+
+    {
+        var offset: i64 = 3;
+        search(&offset, "c");
+        try std.testing.expect(offset == len);
+    }
+
+    {
+        var offset: i64 = 0;
+        search(&offset, "cde");
+        try std.testing.expect(offset == 2);
+    }
+
+    {
+        var offset: i64 = 10;
+        search(&offset, "abc");
+        try std.testing.expect(offset == len);
+    }
+
+    {
+        var offset: i64 = 0;
+        search(&offset, "kl");
+        try std.testing.expect(offset == 10);
+    }
 }
