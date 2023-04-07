@@ -112,3 +112,37 @@ const x = func() catch |err| {
 	return;
 }
 ~~~
+
+
+# Unit tests
+
+Add to your file:
+~~~
+
+/// The function `addOne` adds one to the number given as its argument.
+fn addOne(number: i32) i32 {
+    return number + 1;
+}
+
+test "expect addOne adds one to 41" {
+
+    // The Standard Library contains useful functions to help create tests.
+    // `expect` is a function that verifies its argument is true.
+    // It will return an error if its argument is false to indicate a failure.
+    // `try` is used to return an error to the test runner to notify it that the test failed.
+    try std.testing.expect(addOne(41) == 42);
+}
+~~~
+
+And add file/test to the build in build.zig:
+~~~
+    const test_step = b.step("test", "Run unit tests");
+    var exe_tests = b.addTest("src/bin_dumper.zig");
+    exe_tests.setTarget(target);
+    exe_tests.setBuildMode(mode);
+    test_step.dependOn(&exe_tests.step);
+~~~
+
+## vscode
+
+vscode, at the moment (2023), has o support for unit tests for zig.

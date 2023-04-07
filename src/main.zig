@@ -4,17 +4,14 @@ const bin_dumper = @import("bin_dumper.zig");
 const stdout = std.io.getStdOut();
 
 pub fn main() !void {
-    var offs: i32 = 0;
-    //var mut bin_dumper = BinDumper::new();
-
-    //    std.debug.print("Hello, {s}!\n", .{"World"});
+    var offs: i64 = 0;
     const writer = stdout.writer();
 
     var args = try std.process.argsWithAllocator(std.heap.page_allocator);
     defer args.deinit();
 
     // Skip path
-    const executable_name = args.next();
+    _ = args.next();
 
     while (true) {
         var arg = args.next() orelse break;
@@ -27,19 +24,19 @@ pub fn main() !void {
                 return anyerror.expected_offset; //;"Expected an offset value.");
             };
             if ((o[0] == '+') or (o[0] == '-')) {
-                offs += try std.fmt.parseInt(i32, o, 0);
+                offs += try std.fmt.parseInt(i64, o, 0);
             } else {
-                offs = try std.fmt.parseInt(i32, o, 0);
+                offs = try std.fmt.parseInt(i64, o, 0);
             }
         } else if (std.cstr.cmp(arg, "--size") == 0) {
             const s = args.next() orelse {
                 return anyerror.expected_size; //;"Expected a size value.");
             };
             // Check for max
-            var size: i32 = std.math.maxInt(i32);
+            var size: i64 = std.math.maxInt(i64);
             if (std.cstr.cmp(s, "all") != 0) {
                 // It's not "all":
-                size = try std.fmt.parseInt(i32, s, 0);
+                size = try std.fmt.parseInt(i64, s, 0);
             }
             try bin_dumper.dump(offs, size, writer);
             offs += size;
@@ -50,11 +47,11 @@ pub fn main() !void {
         } else {
             // // It is the filename. Open file.
             try bin_dumper.read_file(arg);
-            // offs = 0;
+            offs = 0;
         }
     }
 
- //   std.debug.print("executable_name={any}\n", .{executable_name});
+    //   std.debug.print("executable_name={any}\n", .{executable_name});
 }
 
 /// Prints the help.
