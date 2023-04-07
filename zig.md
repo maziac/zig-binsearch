@@ -50,6 +50,17 @@ if(p) |ptr| {
 In this example ptr gets the type *u8.
 
 
+## Unwrap
+
+Example:
+~~~
+fn doAThing() -> ?&Foo {
+    const ptr = malloc(1234) ?? return null;
+    // ...
+}
+~~~
+
+
 # @This
 
 @This() returns the type of the inner most struct/enum/union. For example, the following prints "true":

@@ -51,29 +51,31 @@ pub fn dump(offset: i64, size: i64, writer: anytype) !void {
 /// 'offset' - The offset to search from. The found offset is returned here.
 /// 'search' - the serach string.
 pub fn search(offset: *i64, search_bytes: []const u8) void {
-    const slen = @intCast(i64, search_bytes.len);
-    if (slen > 0) {
-        const len = @intCast(i64, buffer.?.len);
-        var offs = offset.*;
-        if (offs < 0) {
-            offs = 0;
-        }
-        const last = len - slen + 1;
-        if (offs <= last) {
-            // Loop all elements
-            var i = offs;
-            while (i < last) {
-                if (std.mem.eql(u8, buffer.?[@intCast(usize,i) .. @intCast(usize,i + slen)], search_bytes)) {
-                    // Search bytes found
-                    offset.* = i;
-                    return;
-                }
-                // Next
-                i += 1;
+    if (buffer) |buf| {
+        const slen = @intCast(i64, search_bytes.len);
+        if (slen > 0) {
+            const len = @intCast(i64, buf.len);
+            var offs = offset.*;
+            if (offs < 0) {
+                offs = 0;
             }
-            // Nothing found
+            const last = len - slen + 1;
+            if (offs <= last) {
+                // Loop all elements
+                var i = offs;
+                while (i < last) {
+                    if (std.mem.eql(u8, buf[@intCast(usize, i)..@intCast(usize, i + slen)], search_bytes)) {
+                        // Search bytes found
+                        offset.* = i;
+                        return;
+                    }
+                    // Next
+                    i += 1;
+                }
+                // Nothing found
+            }
+            offset.* = len;
         }
-        offset.* = len;
     }
 }
 
