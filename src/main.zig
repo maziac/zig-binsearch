@@ -54,7 +54,7 @@ pub fn main() !void {
         }
     }
 
-    std.debug.print("executable_name={any}\n", .{executable_name});
+ //   std.debug.print("executable_name={any}\n", .{executable_name});
 }
 
 /// Prints the help.

@@ -13,7 +13,6 @@ pub fn read_file(spath: [:0]const u8) anyerror!void {
     if (buffer) |buf| {
         allocator.free(buf);
     }
-
     // Open file
     var file = try std.fs.cwd().openFile(spath, .{});
     defer file.close();
