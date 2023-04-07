@@ -16,6 +16,10 @@ pub fn main() !void {
     while (true) {
         var arg = args.next() orelse break;
 
+        // try writer.writeAll(arg);
+        // try writer.writeAll("|");
+        //        std.debug.print("|{s}|}'", arg);
+
         if (std.cstr.cmp(arg, "--help") == 0) {
             args_help();
             return anyerror.my_error;
@@ -44,15 +48,13 @@ pub fn main() !void {
             const s = args.next() orelse {
                 return anyerror.expected_search_value; // "Expected a value sequence to search for."
             };
-            bin_dumper.search(&offs, s);
+            try bin_dumper.search(&offs, s);
         } else {
             // // It is the filename. Open file.
             try bin_dumper.read_file(arg);
             offs = 0;
         }
     }
-
-    //   std.debug.print("executable_name={any}\n", .{executable_name});
 }
 
 /// Prints the help.
@@ -70,7 +72,14 @@ fn args_help() void {
         \\- \"binsearch --offs 10 --size 100\": Outputs the bytes from position 10 to 109.
         \\- \"binsearch --offs 10 --size 100 --offs 200 --size 10\": Outputs the bytes from position 10 to 109, directly followed by 200 to 209.
         \\- \"binsearch --offs 10 --size 100 --reloffs 10 --size 20\": Outputs the bytes from position 10 to 109, directly followed by 120 to 129.
-        \\- \"binsearch --search 'abc' --size 10\": Outputs 10 bytes from the first occurrence of 'abc'. If not fould nothing is output.
+        \\- \"binsearch --search abc --size 10\": Outputs 10 bytes from the first occurrence of 'abc'. If not fould nothing is output.
+        \\
+        \\The search string can also contain spaces. In that case use quotations marks.
+        \\You can also search for numeric byte values, use:
+        \\\\d123, to search for byte value 123 or
+        \\\\xFE, to search for 0xFA (or 254).
+        \\You can also mix characters and numbers, e.g. "a\xFA,\d7,bc\d9" will search for
+        \\['a', 0xFA, 7, 'b', 'c', 9].
         \\
     , .{}) catch {};
 }

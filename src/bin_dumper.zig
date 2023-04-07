@@ -45,15 +45,86 @@ pub fn dump(offset: i64, size: i64, writer: anytype) !void {
     }
 }
 
+/// Parses the search string.
+/// A search string contains search characters but can also contain decimals
+/// or hex numbers.
+/// 'search_string' - E.g. "a\\xFA,\\d7,bc\\d9"
+/// Returns: E.g. []u8{ 'a', 0xFA, 7, 'b', 'c', 9 }
+pub fn parse_search_string(search_string: []const u8) ![]u8 {
+    var search_bytes = std.ArrayList(u8).init(allocator);
+    const len = search_string.len;
+    var i: usize = 0;
+
+    while (i < len) {
+        var c = search_string[i];
+        if (c == '\\') {
+            // Get next char
+            i += 1;
+            if (i >= len) {
+                return anyerror.expected_d_or_x;
+            }
+            c = search_string[i];
+            // Check for \, decimal or hex
+            if (c == '\\') {
+                // The letter \
+                try search_bytes.append(c);
+            } else if (c == 'd' or c == 'x') {
+                // A decimal or hex will follow
+                var radix: u8 = 16;
+                if (c == 'd') {
+                    radix = 10;
+                }
+                // Find string until ','
+                i += 1;
+                var k = i;
+                while (k < len) {
+                    if (search_string[k] == ',') {
+                        break;
+                    }
+                    k += 1;
+                }
+                // Check range
+                if (k == i) {
+                    return anyerror.expected_number;
+                }
+                // Now convert decimal value
+                var val = try std.fmt.parseInt(u8, search_string[i..k], radix);
+                try search_bytes.append(val);
+                // Next
+                i = k;
+            } else {
+                // Error
+                return anyerror.expected_d_or_x;
+            }
+        } else {
+            // "Normal" letter
+            try search_bytes.append(c);
+        }
+
+        // Next
+        i += 1;
+    }
+
+    return search_bytes.toOwnedSlice();
+}
+
 /// Searches a string in the buffer and changes the 'offset'.
 /// If the string is not found the buffer length is returned in 'offset'.
+/// A search string contains search characters but can also contain decimals
+/// or hex numbers.
 /// Arguments:
 /// 'offset' - The offset to search from. The found offset is returned here.
-/// 'search' - the serach string.
-pub fn search(offset: *i64, search_bytes: []const u8) void {
+/// 'search_string' - the search string.
+/// 'search_string' - E.g. "a\\xFA,\\d7,bc\\d9"
+/// Returns: E.g. []u8{ 'a', 0xFA, 7, 'b', 'c', 9 }
+pub fn search(offset: *i64, search_string: []const u8) !void {
     if (buffer) |buf| {
-        const slen = @intCast(i64, search_bytes.len);
+        const slen = @intCast(i64, search_string.len);
         if (slen > 0) {
+            // Parse search string
+            const search_bytes = try parse_search_string(search_string);
+            defer allocator.free(search_bytes);
+
             const len = @intCast(i64, buf.len);
             var offs = offset.*;
             if (offs < 0) {
@@ -145,6 +216,51 @@ test "dump" {
     }
 }
 
+test "parse_search_string" {
+    {
+        const sc = try parse_search_string("abc");
+        try std.testing.expectEqualSlices(u8, sc, "abc");
+        allocator.free(sc);
+    }
+
+    {
+        const sc = try parse_search_string("");
+        try std.testing.expectEqualSlices(u8, sc, "");
+        allocator.free(sc);
+    }
+
+    {
+        const sc = try parse_search_string("\\d123");
+        try std.testing.expect(sc[0] == 123);
+        allocator.free(sc);
+    }
+
+    {
+        const sc = try parse_search_string("\\d123,a");
+        try std.testing.expect(sc[0] == 123);
+        try std.testing.expect(sc[1] == 'a');
+        allocator.free(sc);
+    }
+
+    {
+        const sc = try parse_search_string("\\xFA");
+        try std.testing.expect(sc[0] == 0xFA);
+        allocator.free(sc);
+    }
+
+    {
+        const sc = try parse_search_string("a\\xFA,\\d7,bc\\d9");
+        try std.testing.expectEqualSlices(u8, sc, &[_]u8{ 'a', 0xFA, 7, 'b', 'c', 9 });
+        allocator.free(sc);
+    }
+
+    {
+        const sc = try parse_search_string("a\\\\b");
+        try std.testing.expectEqualSlices(u8, sc, &[_]u8{ 'a', '\\', 'b' });
+        allocator.free(sc);
+    }
+}
+
 test "search" {
     try read_file("test_data/abcdefghijkl.bin");
     var outbuffer = std.ArrayList(u8).init(allocator);
@@ -153,49 +269,49 @@ test "search" {
 
     {
         var offset: i64 = 0;
-        search(&offset, "");
+        try search(&offset, "");
         try std.testing.expect(offset == 0);
     }
 
     {
         var offset: i64 = 0;
-        search(&offset, "a");
+        try search(&offset, "a");
         try std.testing.expect(offset == 0);
     }
 
     {
         var offset: i64 = 0;
-        search(&offset, "b");
+        try search(&offset, "b");
         try std.testing.expect(offset == 1);
     }
 
     {
         var offset: i64 = 2;
-        search(&offset, "c");
+        try search(&offset, "c");
         try std.testing.expect(offset == 2);
     }
 
     {
         var offset: i64 = 3;
-        search(&offset, "c");
+        try search(&offset, "c");
         try std.testing.expect(offset == len);
     }
 
     {
         var offset: i64 = 0;
-        search(&offset, "cde");
+        try search(&offset, "cde");
         try std.testing.expect(offset == 2);
     }
 
     {
         var offset: i64 = 10;
-        search(&offset, "abc");
+        try search(&offset, "abc");
         try std.testing.expect(offset == len);
     }
 
     {
         var offset: i64 = 0;
-        search(&offset, "kl");
+        try search(&offset, "kl");
         try std.testing.expect(offset == 10);
     }
 }
