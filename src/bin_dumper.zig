@@ -261,6 +261,30 @@ test "parse_search_string" {
     }
 }
 
+test "parse_search_string error cases" {
+    {
+        try std.testing.expectError(anyerror.expected_d_or_x, parse_search_string("\\a"));
+    }
+    {
+        try std.testing.expectError(std.fmt.ParseIntError.Overflow, parse_search_string("\\d256"));
+    }
+    {
+        try std.testing.expectError(std.fmt.ParseIntError.Overflow, parse_search_string("\\d-1"));
+    }
+    {
+        try std.testing.expectError(std.fmt.ParseIntError.InvalidCharacter, parse_search_string("\\d2h"));
+    }
+    {
+        try std.testing.expectError(std.fmt.ParseIntError.Overflow, parse_search_string("\\xFF1"));
+    }
+    {
+        try std.testing.expectError(std.fmt.ParseIntError.Overflow, parse_search_string("\\x-01"));
+    }
+    {
+        try std.testing.expectError(std.fmt.ParseIntError.InvalidCharacter, parse_search_string("\\xFG"));
+    }
+}
+
 test "search" {
     try read_file("test_data/abcdefghijkl.bin");
     var outbuffer = std.ArrayList(u8).init(allocator);
