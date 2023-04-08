@@ -8,38 +8,13 @@ var gp = std.heap.GeneralPurposeAllocator(.{ .safety = true }){};
 //defer _ = gp.deinit();
 const allocator = gp.allocator();
 
-fn fff(a: [][:0]const u8) [:0]const u8 {
-    return a[0];
-}
-
-fn z(a: []u32) u32 {
-    return a[0];
-}
-
 pub fn main() !void {
-    var yy = [_]u32{ 1, 3, 6 };
-    const zz = z(&yy);
-    _ = zz;
-
-    var ppp = [_][:0]const u8{ "x", "y" };
-    const s = fff(&ppp);
-    _ = s;
-
-    //var ppp = &[_][:0]const u8{ "x", "y" };
-    //const s = fff(ppp);
-    //var ppp2 = [_][:0]const u8{ "x", "y" };
-    //const s2 = fff(&ppp2);
-    //_ = s2;
-    //_ = s;
-
     var args = try std.process.argsAlloc(allocator);
     defer allocator.free(args);
 
     // Parse arguments
     const writer = stdout.writer();
-    //  try parse_args(args, writer);
-
-    try parse_args(&ppp, writer);
+    try parse_args(args, writer);
 }
 
 /// Loops through the passed arguments.
@@ -143,23 +118,24 @@ test "parse_args" {
 
     {
         outbuffer.clearAndFree();
-        var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin" };
-
+        var args = [_][:0]const u8{"path"};
         try parse_args(&args, writer);
         try std.testing.expectEqualSlices(u8, outbuffer.items, "");
     }
 
-    // {
-    //     outbuffer.clearAndFree();
-    //     var iter = std.mem.split(u8, "test_data/abcdefghijkl.bin", ",");
-    //     try parse_args(iter, outbuffer);
-    //     try std.testing.expectEqualSlices(u8, outbuffer.items, "");
-    // }
+    {
+        outbuffer.clearAndFree();
+        var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin" };
+        try parse_args(&args, writer);
+        try std.testing.expectEqualSlices(u8, outbuffer.items, "");
+    }
 
-    // {
-    //     outbuffer.clearAndFree();
-    //     var iter = std.mem.split(u8, "test_data/abcdefghijkl.bin,--size,all", ",");
-    //     try parse_args(iter, outbuffer);
-    //     try std.testing.expectEqualSlices(u8, outbuffer.items, "abcdefghijkl");
-    // }
+    {
+        outbuffer.clearAndFree();
+        var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin",
+            "--size", "all"
+        };
+        try parse_args(&args, writer);
+        try std.testing.expectEqualSlices(u8, outbuffer.items, "abcdefghijkl");
+    }
 }
