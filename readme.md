@@ -29,13 +29,30 @@ Please note: when searching for a sequence of bytes, a 0 is **not** automaticall
 
 # Developemnt
 
-## Build
+## Debug build
 
 ~~~
 zig build
 ~~~
 
+Or through vscode's tasks.json "debug build".
+
 The binary is found at "zig-out/bin/binsearch".
+
+
+## Release build
+
+~~~
+zig build -Drelease-fast=true
+~~~
+
+Or through vscode's tasks.json "cross build".
+
+This will execute release builds for macos, linux and windows.
+The binary are found at "zig-out/bin":
+- binsearch-linux
+- binsearch-macos
+- binsearch-windows
 
 
 ## Unit tests
