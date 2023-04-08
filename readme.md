@@ -11,6 +11,7 @@ The output is written to stdout and can be redirected into a file or piped to an
 # Arguments
 
 - "**--help**": Prints the help.
+- "**--version**": Prints the version number.
 - "**--offs** offset": Offset from start of file. Moves last position. You can also move relatively by prefixinge with + or -.
 - "**--size** size": The number of bytes to output. Moves last position.
 - "**--search** tokens": Searches for the first occurrence of the tokens. The search starts at last position. Tokens can be a decimal of hex number or a string. The search starts at last position.

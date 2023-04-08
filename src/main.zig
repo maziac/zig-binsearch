@@ -90,7 +90,7 @@ fn args_help() void {
     std.io.getStdOut().writer().print(
         \\Usage:
         \\--help: Prints this help.
-        \\--version: Print the version number.
+        \\--version: Prints the version number.
         \\--offs offset: Offset from start of file. Moves last position. It is possible to use relative offset with the '+' or '-' sign. In that case the value is added to the current offset.
         \\--size size: The number of bytes to evaluate. Moves last position (offset:=offset+size).
         \\--search tokens: Searches for the first occurrence of tokens. Token can be a decimal of hex number or a string. The search starts at last position.
