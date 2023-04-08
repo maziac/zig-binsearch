@@ -11,28 +11,52 @@ pub fn build(b: *std.build.Builder) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardReleaseOptions();
 
-    const exe = b.addExecutable("binsearch", "src/main.zig");
-    exe.setTarget(target);
-    exe.setBuildMode(mode);
-    exe.install();
+    if (mode == std.builtin.Mode.Debug) {
+        // Debug mode
+        const exe = b.addExecutable("binsearch", "src/main.zig");
+        exe.setTarget(target);
+        exe.setBuildMode(mode);
+        exe.install();
 
-    const run_cmd = exe.run();
-    run_cmd.step.dependOn(b.getInstallStep());
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
+        const run_cmd = exe.run();
+        run_cmd.step.dependOn(b.getInstallStep());
+        if (b.args) |args| {
+            run_cmd.addArgs(args);
+        }
+
+        const run_step = b.step("run", "Run the app");
+        run_step.dependOn(&run_cmd.step);
+
+        const test_step = b.step("test", "Run unit tests");
+        var exe_tests = b.addTest("src/main.zig");
+        exe_tests.setTarget(target);
+        exe_tests.setBuildMode(mode);
+        test_step.dependOn(&exe_tests.step);
+
+        var bd_tests = b.addTest("src/bin_dumper.zig");
+        bd_tests.setTarget(target);
+        bd_tests.setBuildMode(mode);
+        test_step.dependOn(&bd_tests.step);
+    } else {
+        // Otherwise it is ReleaseSafe, ReleaseFast or ReleaseSmall. I.e. release mode.
+        // Debug mode
+        {
+            const exe = b.addExecutable("binsearch-macos", "src/main.zig");
+            exe.setTarget(std.zig.CrossTarget.parse(.{ .arch_os_abi = "x86_64-macos" }) catch @panic("err"));
+            exe.setBuildMode(mode);
+            exe.install();
+        }
+        {
+            const exe = b.addExecutable("binsearch-windows", "src/main.zig");
+            exe.setTarget(std.zig.CrossTarget.parse(.{ .arch_os_abi = "x86_64-windows" }) catch @panic("err"));
+            exe.setBuildMode(mode);
+            exe.install();
+        }
+        {
+            const exe = b.addExecutable("binsearch-linux", "src/main.zig");
+            exe.setTarget(std.zig.CrossTarget.parse(.{ .arch_os_abi = "x86_64-linux" }) catch @panic("err"));
+            exe.setBuildMode(mode);
+            exe.install();
+        }
     }
-
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&run_cmd.step);
-
-    const test_step = b.step("test", "Run unit tests");
-    var exe_tests = b.addTest("src/main.zig");
-    exe_tests.setTarget(target);
-    exe_tests.setBuildMode(mode);
-    test_step.dependOn(&exe_tests.step);
-
-    var bd_tests = b.addTest("src/bin_dumper.zig");
-    bd_tests.setTarget(target);
-    bd_tests.setBuildMode(mode);
-    test_step.dependOn(&bd_tests.step);
 }

@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "debug build",
             "type": "shell",
             "command": "zig build",
             "group": {
@@ -12,6 +12,17 @@
                 "isDefault": true
             },
             "problemMatcher":  {
+                "base": "$zig",
+                "fileLocation": "absolute"
+            }
+        },
+
+        {
+            "label": "cross build",
+            "type": "shell",
+            "command": "zig build -Drelease-fast=true",
+            "group": "build",
+            "problemMatcher": {
                 "base": "$zig",
                 "fileLocation": "absolute"
             }
