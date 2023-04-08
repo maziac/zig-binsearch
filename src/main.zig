@@ -3,37 +3,72 @@ const bin_dumper = @import("bin_dumper.zig");
 
 const stdout = std.io.getStdOut();
 
+//  Get an allocator
+var gp = std.heap.GeneralPurposeAllocator(.{ .safety = true }){};
+//defer _ = gp.deinit();
+const allocator = gp.allocator();
+
+fn fff(a: [][:0]const u8) [:0]const u8 {
+    return a[0];
+}
+
+fn z(a: []u32) u32 {
+    return a[0];
+}
+
 pub fn main() !void {
-    var offs: i64 = 0;
+    var yy = [_]u32{ 1, 3, 6 };
+    const zz = z(&yy);
+    _ = zz;
+
+    var ppp = [_][:0]const u8{ "x", "y" };
+    const s = fff(&ppp);
+    _ = s;
+
+    //var ppp = &[_][:0]const u8{ "x", "y" };
+    //const s = fff(ppp);
+    //var ppp2 = [_][:0]const u8{ "x", "y" };
+    //const s2 = fff(&ppp2);
+    //_ = s2;
+    //_ = s;
+
+    var args = try std.process.argsAlloc(allocator);
+    defer allocator.free(args);
+
+    // Parse arguments
     const writer = stdout.writer();
+    //  try parse_args(args, writer);
 
-    var args = try std.process.argsWithAllocator(std.heap.page_allocator);
-    defer args.deinit();
+    try parse_args(&ppp, writer);
+}
 
-    // Skip path
-    _ = args.next();
+/// Loops through the passed arguments.
+/// Any dump is written to 'writer'.
+fn parse_args(args_array: [][:0]const u8, writer: anytype) !void {
+    var offs: i64 = 0;
+    var i: usize = 1; // Skip first (path)
+    const len = args_array.len;
 
-    while (true) {
-        var arg = args.next() orelse break;
-
-        // try writer.writeAll(arg);
-        // try writer.writeAll("|");
-        //        std.debug.print("|{s}|}'", arg);
+    while (i < len) {
+        const arg = args_array[i];
 
         if (std.cstr.cmp(arg, "--help") == 0) {
             args_help();
             return anyerror.my_error;
         } else if (std.cstr.cmp(arg, "--offs") == 0) {
-            const o = args.next() orelse {
+            // Get next arg
+            const o = get_next_arg(&i, args_array) orelse {
                 return anyerror.expected_offset; // "Expected an offset value."
             };
+            // Check value
             if ((o[0] == '+') or (o[0] == '-')) {
                 offs += try std.fmt.parseInt(i64, o, 0);
             } else {
                 offs = try std.fmt.parseInt(i64, o, 0);
             }
         } else if (std.cstr.cmp(arg, "--size") == 0) {
-            const s = args.next() orelse {
+            // Get next arg
+            const s = get_next_arg(&i, args_array) orelse {
                 return anyerror.expected_size; // "Expected a size value."
             };
             // Check for max
@@ -45,7 +80,8 @@ pub fn main() !void {
             try bin_dumper.dump(offs, size, writer);
             offs += size;
         } else if (std.cstr.cmp(arg, "--search") == 0) {
-            const s = args.next() orelse {
+            // Get next arg
+            const s = get_next_arg(&i, args_array) orelse {
                 return anyerror.expected_search_value; // "Expected a value sequence to search for."
             };
             try bin_dumper.search(&offs, s);
@@ -54,7 +90,23 @@ pub fn main() !void {
             try bin_dumper.read_file(arg);
             offs = 0;
         }
+
+        // Next
+        i += 1;
     }
+}
+
+/// Returns the next argument in 'args_array' or an error if none exists.
+/// - 'index' - The current index. Will get increased by 1.
+/// - 'args_array' - The array of strings.
+/// Returns: The string at 'index' or null if out of range.
+fn get_next_arg(index: *usize, args_array: [][:0]const u8) ?[:0]const u8 {
+    index.* += 1;
+    if (index.* >= args_array.len) {
+        return null;
+    }
+    const o = args_array[index.*];
+    return o;
 }
 
 /// Prints the help.
@@ -82,4 +134,32 @@ fn args_help() void {
         \\['a', 0xFA, 7, 'b', 'c', 9].
         \\
     , .{}) catch {};
+}
+
+test "parse_args" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+
+    {
+        outbuffer.clearAndFree();
+        var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin" };
+
+        try parse_args(&args, writer);
+        try std.testing.expectEqualSlices(u8, outbuffer.items, "");
+    }
+
+    // {
+    //     outbuffer.clearAndFree();
+    //     var iter = std.mem.split(u8, "test_data/abcdefghijkl.bin", ",");
+    //     try parse_args(iter, outbuffer);
+    //     try std.testing.expectEqualSlices(u8, outbuffer.items, "");
+    // }
+
+    // {
+    //     outbuffer.clearAndFree();
+    //     var iter = std.mem.split(u8, "test_data/abcdefghijkl.bin,--size,all", ",");
+    //     try parse_args(iter, outbuffer);
+    //     try std.testing.expectEqualSlices(u8, outbuffer.items, "abcdefghijkl");
+    // }
 }
