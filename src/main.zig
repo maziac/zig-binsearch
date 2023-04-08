@@ -111,7 +111,7 @@ fn args_help() void {
     , .{}) catch {};
 }
 
-test "parse_args" {
+test "parse_args simple" {
     var outbuffer = std.ArrayList(u8).init(allocator);
     defer outbuffer.deinit();
     const writer = outbuffer.writer();
@@ -120,22 +120,156 @@ test "parse_args" {
         outbuffer.clearAndFree();
         var args = [_][:0]const u8{"path"};
         try parse_args(&args, writer);
-        try std.testing.expectEqualSlices(u8, outbuffer.items, "");
+        try std.testing.expectEqualSlices(u8, "", outbuffer.items);
     }
 
     {
         outbuffer.clearAndFree();
         var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin" };
         try parse_args(&args, writer);
-        try std.testing.expectEqualSlices(u8, outbuffer.items, "");
+        try std.testing.expectEqualSlices(u8, "", outbuffer.items);
     }
 
     {
         outbuffer.clearAndFree();
-        var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin",
-            "--size", "all"
-        };
+        var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--size", "all" };
         try parse_args(&args, writer);
-        try std.testing.expectEqualSlices(u8, outbuffer.items, "abcdefghijkl");
+        try std.testing.expectEqualSlices(u8, "abcdefghijkl", outbuffer.items);
     }
+}
+
+test "parse_args dump offs" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--offs", "3", "--size", "4" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "defg", outbuffer.items);
+}
+
+test "parse_args 2 slices" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--offs", "2", "--size", "3", "--size", "4" };
+    try parse_args(&args, writer);
+    //std.debug.print("{any}", .{outbuffer.items});
+    try std.testing.expectEqualSlices(u8, "cdefghi", outbuffer.items);
+}
+
+test "parse_args 2 slices" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--offs", "+1", "--size", "3", "--offs", "+4", "--size", "2" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "bcdij", outbuffer.items);
+}
+
+test "parse_args out of range 1" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--offs", "-1", "--size", "3" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "ab", outbuffer.items);
+}
+
+test "parse_args out of range 2" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--offs", "11", "--size", "3" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "l", outbuffer.items);
+}
+
+test "parse_args out of range 3" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--offs", "-3", "--size", "3" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "", outbuffer.items);
+}
+
+test "parse_args out of range 4" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--offs", "12", "--size", "1" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "", outbuffer.items);
+}
+
+test "parse_args out of range 5" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--offs", "-2", "--size", "20" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "abcdefghijkl", outbuffer.items);
+}
+
+test "parse_args two files" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--offs", "5", "--size", "2", "test_data/mnopqrstuvwx.bin", "--offs", "+1", "--size", "4" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "fgnopq", outbuffer.items);
+}
+
+test "parse_args search 1" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--search", "a", "--size", "2" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "ab", outbuffer.items);
+}
+
+test "parse_args search 2" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--search", "bcd", "--size", "2" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "bc", outbuffer.items);
+}
+
+test "parse_args search 3" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--search", "kl", "--size", "5" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "kl", outbuffer.items);
+}
+
+test "parse_args search 4" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--search", "", "--size", "2" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "ab", outbuffer.items);
+}
+
+test "parse_args search 5" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--search", "xy", "--size", "2" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "", outbuffer.items);
+}
+
+test "parse_args search 6" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdabcdaxyz.bin", "--search", "a", "--offs", "+1", "--search", "a", "--offs", "+1", "--search", "a", "--offs", "+1", "--size", "3" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "xyz", outbuffer.items);
 }
