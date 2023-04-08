@@ -273,3 +273,20 @@ test "parse_args search 6" {
     try parse_args(&args, writer);
     try std.testing.expectEqualSlices(u8, "xyz", outbuffer.items);
 }
+
+test "parse_args search decimal" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--search", "\\d98", "--size", "3" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "bcd", outbuffer.items);
+}
+test "parse_args search decimal and hex" {
+    var outbuffer = std.ArrayList(u8).init(allocator);
+    defer outbuffer.deinit();
+    const writer = outbuffer.writer();
+    var args = [_][:0]const u8{ "path", "test_data/abcdefghijkl.bin", "--search", "\\d99,\\x64", "--size", "3" };
+    try parse_args(&args, writer);
+    try std.testing.expectEqualSlices(u8, "cde", outbuffer.items);
+}

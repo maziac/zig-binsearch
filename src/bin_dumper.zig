@@ -119,12 +119,11 @@ pub fn parse_search_string(search_string: []const u8) ![]u8 {
 /// Returns: E.g. []u8{ 'a', 0xFA, 7, 'b', 'c', 9 }
 pub fn search(offset: *i64, search_string: []const u8) !void {
     if (buffer) |buf| {
-        const slen = @intCast(i64, search_string.len);
+        // Parse search string
+        const search_bytes = try parse_search_string(search_string);
+        defer allocator.free(search_bytes);
+        const slen = @intCast(i64, search_bytes.len);
         if (slen > 0) {
-            // Parse search string
-            const search_bytes = try parse_search_string(search_string);
-            defer allocator.free(search_bytes);
-
             const len = @intCast(i64, buf.len);
             var offs = offset.*;
             if (offs < 0) {
