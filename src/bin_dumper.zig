@@ -14,7 +14,10 @@ pub fn read_file(spath: [:0]const u8) anyerror!void {
         allocator.free(buf);
     }
     // Open file
-    var file = try std.fs.cwd().openFile(spath, .{});
+    var file = std.fs.cwd().openFile(spath, .{}) catch |err| {
+        std.log.err("Could not open file: \"{s}\"", .{spath});
+        return err;
+    };
     defer file.close();
 
     // Read file
