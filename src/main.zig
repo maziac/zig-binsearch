@@ -1,7 +1,7 @@
 const std = @import("std");
 const bin_dumper = @import("bin_dumper.zig");
 
-const stdout = std.io.getStdOut();
+const version = "1.0.0";
 
 //  Get an allocator
 var gp = std.heap.GeneralPurposeAllocator(.{ .safety = true }){};
@@ -13,7 +13,7 @@ pub fn main() !void {
     defer allocator.free(args);
 
     // Parse arguments
-    const writer = stdout.writer();
+    const writer = std.io.getStdOut().writer();
     try parse_args(args, writer);
 }
 
@@ -29,7 +29,8 @@ fn parse_args(args_array: [][:0]const u8, writer: anytype) !void {
 
         if (std.cstr.cmp(arg, "--help") == 0) {
             args_help();
-            return anyerror.my_error;
+        } else if (std.cstr.cmp(arg, "--version") == 0) {
+            std.io.getStdOut().writer().print("Version {s}\n", .{version}) catch {};
         } else if (std.cstr.cmp(arg, "--offs") == 0) {
             // Get next arg
             const o = get_next_arg(&i, args_array) orelse {
@@ -86,9 +87,10 @@ fn get_next_arg(index: *usize, args_array: [][:0]const u8) ?[:0]const u8 {
 
 /// Prints the help.
 fn args_help() void {
-    stdout.writer().print(
+    std.io.getStdOut().writer().print(
         \\Usage:
         \\--help: Prints this help.
+        \\--version: Print the version number.
         \\--offs offset: Offset from start of file. Moves last position. It is possible to use relative offset with the '+' or '-' sign. In that case the value is added to the current offset.
         \\--size size: The number of bytes to evaluate. Moves last position (offset:=offset+size).
         \\--search tokens: Searches for the first occurrence of tokens. Token can be a decimal of hex number or a string. The search starts at last position.
