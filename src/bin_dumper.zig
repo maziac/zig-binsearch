@@ -8,6 +8,8 @@ const allocator = gp.allocator();
 // Pointer to the buffer on the heap.
 var buffer: ?[]u8 = null;
 
+/// Reads a file, allocates data and makes 'buffer' point to it.
+/// 'spath' - The path to the file.
 pub fn read_file(spath: [:0]const u8) anyerror!void {
     // Free any previously allocated buffer
     if (buffer) |buf| {
@@ -20,8 +22,19 @@ pub fn read_file(spath: [:0]const u8) anyerror!void {
     };
     defer file.close();
 
-    // Read file
+    // Read data
     buffer = try file.reader().readAllAlloc(allocator, std.math.maxInt(usize));
+}
+
+/// Reads a file, allocates data and makes 'buffer' point to it.
+/// 'reader' - The reader of the file (or stdin).
+pub fn read_stdio() !void {
+    const stdin = std.io.getStdIn();
+    const stdin_size = (try stdin.stat()).size;
+    //std.log.info("stdin_size={}", .{stdin_size});
+    if (stdin_size > 0) {
+        buffer = try stdin.reader().readAllAlloc(allocator, std.math.maxInt(usize)); // Do not use 'stdin_size'
+    }
 }
 
 /// Dumps out the contents of a slice of 'buffer' to 'output'.

@@ -1,7 +1,7 @@
 const std = @import("std");
 const bin_dumper = @import("bin_dumper.zig");
 
-const version = "1.0.0";
+const version = "1.1.0";
 
 //  Get an allocator
 var gp = std.heap.GeneralPurposeAllocator(.{ .safety = true }){};
@@ -12,9 +12,12 @@ pub fn main() !void {
     var args = try std.process.argsAlloc(allocator);
     defer allocator.free(args);
 
+    // Read in the stdin (in case data is piped)
+    try bin_dumper.read_stdio();
+
     // Parse arguments
-    const writer = std.io.getStdOut().writer();
-    try parse_args(args, writer);
+    const stdout = std.io.getStdOut().writer();
+    try parse_args(args, stdout);
 }
 
 /// Loops through the passed arguments.

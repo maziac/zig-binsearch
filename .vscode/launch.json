@@ -13,7 +13,7 @@
                 "--size", "5"
             ],
             "cwd": "${workspaceFolder}",
-            "preLaunchTask": "build"
+            "preLaunchTask": "debug build"
         }
     ]
 }
