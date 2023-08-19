@@ -1,7 +1,7 @@
 # binsearch
 
 A binary search command line tool.
-The tool allows you to specify one (or more files) and dump out values to stdout from a specific offset ad for a specific size.
+The tool allows you to specify one (or more files) and dump out values to stdout from a specific offset and for a specific size.
 It is also possible to search for patterns to set the offset.
 
 The output is written to stdout and can be redirected into a file or piped to another command.
@@ -17,7 +17,7 @@ binsearch file1 [--offs #] [--search tokens] [--size #|all] [file2 [--offs #] ..
 
 - "**--help**": Prints the help.
 - "**--version**": Prints the version number.
-- "**--offs** offset": Offset from start of file. Moves last position. You can also move relatively by prefixinge with + or -.
+- "**--offs** offset": Offset from start of file. Moves last position. You can also move relatively by prefixing with + or -.
 - "**--size** size": The number of bytes to output. Moves last position.
 - "**--search** tokens": Searches for the first occurrence of the tokens. The search starts at last position. Tokens can be a decimal of hex number or a string. The search starts at last position.
 
@@ -97,7 +97,7 @@ The binary are found at "zig-out/bin":
 
 ## Unit tests
 
-To run unitests use
+To run unit tests use
 ~~~
 zig build test
 ~~~
