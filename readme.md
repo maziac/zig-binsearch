@@ -67,7 +67,7 @@ Please note: when searching for a sequence of bytes, a 0 is **not** automaticall
 
 
 
-# Developemnt
+# Development
 
 ## Debug build
 
