@@ -156,7 +156,7 @@ test "parse_args 2 slices" {
     try std.testing.expectEqualSlices(u8, "cdefghi", outbuffer.items);
 }
 
-test "parse_args 2 slices" {
+test "parse_args 2 slices offs" {
     var outbuffer = std.ArrayList(u8).init(allocator);
     defer outbuffer.deinit();
     const writer = outbuffer.writer();

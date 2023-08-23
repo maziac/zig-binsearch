@@ -26,8 +26,7 @@ pub fn read_file(spath: [:0]const u8) anyerror!void {
     buffer = try file.reader().readAllAlloc(allocator, std.math.maxInt(usize));
 }
 
-/// Reads a file, allocates data and makes 'buffer' point to it.
-/// 'reader' - The reader of the file (or stdin).
+/// Reads from stdio, allocates data and makes 'buffer' point to it.
 pub fn read_stdio() !void {
     const stdin = std.io.getStdIn();
     const stdin_size = (try stdin.stat()).size;
@@ -124,15 +123,14 @@ pub fn parse_search_string(search_string: []const u8) ![]u8 {
     return search_bytes.toOwnedSlice();
 }
 
-/// Searches a string in the buffer and changes the 'offset'.
-/// If the string is not found the buffer length is returned in 'offset'.
+/// Searches a string in the buffer and returns the 'offset'.
+/// If the string is not found the buffer length is returned.
 /// A search string contains search characters but can also contain decimals
 /// or hex numbers.
 /// Arguments:
 /// 'offset' - The offset to search from. The found offset is returned here.
 /// 'search_string' - the search string.
-/// 'search_string' - E.g. "a\\xFA,\\d7,bc\\d9"
-/// Returns: E.g. []u8{ 'a', 0xFA, 7, 'b', 'c', 9 }
+///   E.g. "a\\xFA,\\d7,bc\\d9"
 pub fn search(offset: *i64, search_string: []const u8) !void {
     if (buffer) |buf| {
         // Parse search string
